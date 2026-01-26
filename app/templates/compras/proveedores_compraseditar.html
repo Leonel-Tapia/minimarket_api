@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Compra de Proveedor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f4f6f9;
+    }
+
+    .card-section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 0.8rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 0.8rem;
+    }
+
+    /* Compactación de tabla */
+    .table th, .table td {
+      vertical-align: middle;
+      font-size: 0.8rem;
+      padding-top: 2px !important;
+      padding-bottom: 2px !important;
+    }
+
+    .form-control-sm, .form-select-sm {
+      padding: 1px 5px !important;
+      height: 26px !important;
+      font-size: 0.75rem !important;
+    }
+
+    #tabla-detalles-container {
+      max-height: 250px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    #tabla-detalles-container table {
+      margin-bottom: 0;
+    }
+
+    tr.active-row {
+      background-color: #e7f3ff !important;
+    }
+
+    #agregar-producto {
+      font-size: 0.85rem;
+      padding: 6px 12px;
+    }
+  </style>
+</head>
+
+<body class="container py-4">
+
+  <h2 class="text-center mb-4">Editar Compra de Proveedor</h2>
+
+  <div class="d-flex justify-content-center gap-3 mb-4">
+    <a href="/proveedores/{{ compra.id_proveedor }}/dashboard" class="btn btn-outline-secondary">Cancelar</a>
+    <button type="submit" form="form-editar" class="btn btn-primary">Guardar cambios</button>
+    <a href="/proveedores/{{ compra.id_proveedor }}/dashboard" class="btn btn-outline-dark">Volver al dashboard del proveedor</a>
+  </div>
+
+  <form id="form-editar" method="post" action="/proveedores/compras/{{ compra.id_compra }}/editar">
+
+    <div class="card-section">
+      <div class="row g-3">
+        <div class="col-md-2">
+          <label class="form-label">Fecha</label>
+          <input type="date" name="fecha_compra" class="form-control" value="{{ compra.fecha_compra }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Factura</label>
+          <input type="text" name="numero_factura" class="form-control" value="{{ compra.numero_factura }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Estado</label>
+          <select name="estado" class="form-select">
+            <option value="pendiente" {% if compra.estado == "pendiente" %}selected{% endif %}>Pendiente</option>
+            <option value="activa" {% if compra.estado == "activa" %}selected{% endif %}>Activa</option>
+            <option value="pagado" {% if compra.estado == "pagado" %}selected{% endif %}>Pagado</option>
+            <option value="anulado" {% if compra.estado == "anulado" %}selected{% endif %}>Anulado</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Total</label>
+          <input type="number" step="0.01" name="total_compra" id="total_compra" class="form-control" value="{{ compra.total_compra }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Impuesto</label>
+          <input type="number" step="0.01" name="impuesto" class="form-control" value="{{ compra.impuesto }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Envío</label>
+          <input type="number" step="0.01" name="envio" class="form-control" value="{{ compra.envio }}">
+        </div>
+      </div>
+    </div>
+
+    <div class="card-section">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Detalles de la compra</h5>
+        <button type="button" class="btn btn-success btn-sm" id="agregar-producto">➕ Agregar producto</button>
+      </div>
+
+      <div id="tabla-detalles-container">
+        <table class="table table-bordered table-hover table-sm" id="tabla-detalles">
+          <thead class="table-light">
+            <tr>
+              <th>Producto</th>
+              <th style="width: 90px;">Cantidad</th>
+              <th style="width: 110px;">Precio Unitario</th>
+              <th style="width: 100px;">Subtotal</th>
+              <th style="width: 60px;">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for detalle in detalles %}
+            <tr>
+              <td>
+                <select name="producto_{{ detalle.id_detalle }}" class="form-select form-select-sm producto">
+                  {% for producto in productos %}
+                  <option value="{{ producto.id }}" {% if producto.id == detalle.id_producto %}selected{% endif %}>
+                    {{ producto.descripcion }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td><input type="number" step="0.01" name="cantidad_{{ detalle.id_detalle }}" value="{{ detalle.cantidad }}" class="form-control form-control-sm cantidad"></td>
+              <td><input type="number" step="0.01" name="precio_{{ detalle.id_detalle }}" value="{{ detalle.precio_unitario }}" class="form-control form-control-sm precio"></td>
+              <td><input type="text" readonly class="form-control-plaintext subtotal" value="{{ detalle.cantidad * detalle.precio_unitario }}"></td>
+              <td><button type="button" class="btn btn-sm btn-danger borrar-detalle px-2 py-1" data-id="{{ detalle.id_detalle }}">🗑️</button></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </form>
+
+  <script>
+    function recalcularTotales() {
+      let total = 0;
+
+      document.querySelectorAll("#tabla-detalles tbody tr").forEach(row => {
+        let cantidad = parseFloat(row.querySelector(".cantidad").value) || 0;
+        let precio = parseFloat(row.querySelector(".precio").value) || 0;
+
+        let subtotal = cantidad * precio;
+        row.querySelector(".subtotal").value = subtotal.toFixed(2);
+
+        total += subtotal;
+      });
+
+      document.getElementById("total_compra").value = total.toFixed(2);
+    }
+
+    document.querySelectorAll(".cantidad, .precio").forEach(input => {
+      input.addEventListener("input", recalcularTotales);
+    });
+
+    document.querySelectorAll(".borrar-detalle").forEach(btn => {
+      btn.addEventListener("click", function() {
+        let id = this.dataset.id;
+
+        fetch(`/proveedores/compras/detalle/${id}/borrar`, { method: "POST" })
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === "ok") {
+              this.closest("tr").remove();
+              recalcularTotales();
+            }
+          });
+      });
+    });
+
+    document.getElementById("agregar-producto").addEventListener("click", function() {
+      let tbody = document.querySelector("#tabla-detalles tbody");
+      let newRow = document.createElement("tr");
+
+      newRow.innerHTML = `
+        <td>
+          <select name="producto_nuevo" class="form-select form-select-sm producto">
+            {% for producto in productos %}
+            <option value="{{ producto.id }}">{{ producto.descripcion }}</option>
+            {% endfor %}
+          </select>
+        </td>
+
+        <td>
+          <input type="number" step="0.01" name="cantidad_nuevo"
+                 class="form-control form-control-sm cantidad" value="0">
+        </td>
+
+        <td>
+          <input type="number" step="0.01" name="precio_nuevo"
+                 class="form-control form-control-sm precio" value="0">
+        </td>
+
+        <td>
+          <input type="text" readonly class="form-control-plaintext subtotal" value="0.00">
+        </td>
+
+        <td>
+          <button type="button" class="btn btn-sm btn-danger borrar-detalle px-2 py-1">🗑️</button>
+        </td>
+      `;
+
+      tbody.appendChild(newRow);
+
+      newRow.querySelector(".cantidad").addEventListener("input", recalcularTotales);
+      newRow.querySelector(".precio").addEventListener("input", recalcularTotales);
+
+      newRow.querySelector(".borrar-detalle").addEventListener("click", function() {
+        this.closest("tr").remove();
+        recalcularTotales();
+      });
+
+      const container = document.getElementById("tabla-detalles-container");
+      container.scrollTop = container.scrollHeight;
+
+      const productoSelect = newRow.querySelector(".producto");
+      productoSelect.focus();
+
+      recalcularTotales();
+    });
+
+    document.addEventListener("keydown", function(e) {
+      const active = document.activeElement;
+
+      if (!active.classList.contains("cantidad") &&
+          !active.classList.contains("precio")) return;
+
+      const row = active.closest("tr");
+      if (!row) return;
+
+      let targetRow;
+
+      if (e.key === "ArrowDown") {
+        targetRow = row.nextElementSibling;
+      } else if (e.key === "ArrowUp") {
+        targetRow = row.previousElementSibling;
+      }
+
+      if (targetRow) {
+        e.preventDefault();
+
+        const index = [...row.children].indexOf(active.parentElement);
+        const targetInput = targetRow.children[index].querySelector("input");
+
+        if (targetInput) {
+          targetInput.focus();
+          targetInput.select();
+        }
+
+        targetRow.scrollIntoView({ block: "nearest" });
+      }
+    });
+
+    recalcularTotales();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Proveedor</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { text-align: center; margin-bottom: 20px; }
+    form { max-width: 800px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    label { display: flex; flex-direction: column; font-weight: bold; }
+    input, textarea, select { padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+    .form-actions { grid-column: span 2; display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+    .form-actions button { padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+    .btn-guardar { background-color: #28a745; color: #fff; }
+    .btn-cancelar { background-color: #6c757d; color: #fff; }
+    .estado-checkbox { grid-column: span 2; display: flex; align-items: center; gap: 10px; justify-content: center; margin-top: 10px; }
+    .help { font-weight: normal; color: #666; margin-top: 5px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Editar Proveedor</h1>
+
+  <!-- Corregido: action apunta a /proveedor/guardar y el id se toma de proveedor.id -->
+  <form method="POST" action="/proveedor/guardar" novalidate autocomplete="off">
+    <input type="hidden" name="id" value="{{ proveedor.id }}">
+
+    <label>Nombre *
+      <input type="text" name="nombre" value="{{ proveedor.nombre or '' }}" required>
+    </label>
+
+    <label>RUC *
+      <input type="text" name="ruc" value="{{ proveedor.ruc or '' }}" required>
+    </label>
+
+    <label>Dirección *
+      <input type="text" name="direccion" value="{{ proveedor.direccion or '' }}" required>
+    </label>
+
+    <label>Teléfono *
+      <input
+        id="telefono"
+        type="text"
+        name="telefono"
+        value="{{ proveedor.telefono or '' }}"
+        required
+        pattern="\(\d{3}\) \d{3}-\d{4}"
+        placeholder="(000) 000-0000"
+        inputmode="numeric"
+        maxlength="14">
+      <span class="help">Formato requerido: (xxx) xxx-xxxx</span>
+    </label>
+
+    <label>Email *
+      <input type="email" name="email" value="{{ proveedor.email or '' }}" required>
+    </label>
+
+    <label>Contacto
+      <input type="text" name="contacto" value="{{ proveedor.contacto_nombre or '' }}">
+    </label>
+
+    <label>Tel. Contacto
+      <input
+        id="tel_contacto"
+        type="text"
+        name="tel_contacto"
+        value="{{ proveedor.contacto_telefono or '' }}"
+        pattern="\(\d{3}\) \d{3}-\d{4}"
+        placeholder="(000) 000-0000"
+        inputmode="numeric"
+        maxlength="14">
+      <span class="help">Formato: (xxx) xxx-xxxx. Se aplica automáticamente al escribir.</span>
+    </label>
+
+    <label>Email Contacto
+      <input type="email" name="email_contacto" value="{{ proveedor.contacto_email or '' }}">
+    </label>
+
+    <div class="estado-checkbox">
+      <label><input type="checkbox" name="estado" {% if proveedor.estado %}checked{% endif %}> Activo</label>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-guardar">Guardar</button>
+      <!-- Corregido: Cancelar apunta al catálogo -->
+      <button type="button" class="btn-cancelar" onclick="window.location.href='/proveedor/catalogo'">Cancelar</button>
+    </div>
+  </form>
+
+  <script>
+    function formatPhone(value) {
+      const digits = value.replace(/\D/g, '').slice(0, 10);
+      const part1 = digits.slice(0, 3);
+      const part2 = digits.slice(3, 6);
+      const part3 = digits.slice(6, 10);
+      if (digits.length > 6) return `(${part1}) ${part2}-${part3}`;
+      if (digits.length > 3) return `(${part1}) ${part2}`;
+      if (digits.length > 0) return `(${part1}`;
+      return '';
+    }
+
+    function applyPhoneFormat(inputId) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      input.addEventListener('input', (e) => {
+        const formatted = formatPhone(e.target.value);
+        e.target.value = formatted;
+        e.target.setSelectionRange(formatted.length, formatted.length);
+      });
+      if (input.value && !/^\(\d{3}\) \d{3}-\d{4}$/.test(input.value)) {
+        input.value = formatPhone(input.value);
+      }
+    }
+
+    applyPhoneFormat('telefono');
+    applyPhoneFormat('tel_contacto');
+  </script>
+</body>
+</html>

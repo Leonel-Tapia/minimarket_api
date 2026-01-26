@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Datos de la Empresa</title>
+    <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        form {
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px 15px;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+            color: #555;
+        }
+
+        input, textarea {
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .full-width {
+            grid-column: span 3;
+        }
+
+        .buttons {
+            grid-column: span 3;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 5px;
+        }
+
+        button {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        button[type="button"] {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        button[type="button"]:hover {
+            background-color: #a71d2a;
+        }
+
+        a.btn-salir {
+            padding: 8px 18px;
+            border-radius: 6px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        a.btn-salir:hover {
+            background-color: #5a6268;
+        }
+    </style>
+
+    <script>
+
+        /* ⭐ MISMA FUNCIÓN QUE YA FUNCIONA EN PROVEEDORES */
+        function formatPhone(value) {
+            const digits = value.replace(/\D/g, '').slice(0, 10);
+            const part1 = digits.slice(0, 3);
+            const part2 = digits.slice(3, 6);
+            const part3 = digits.slice(6, 10);
+            if (digits.length > 6) return `(${part1}) ${part2}-${part3}`;
+            if (digits.length > 3) return `(${part1}) ${part2}`;
+            if (digits.length > 0) return `(${part1}`;
+            return '';
+        }
+
+        function applyPhoneFormat(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+
+            input.addEventListener('input', (e) => {
+                const formatted = formatPhone(e.target.value);
+                e.target.value = formatted;
+                e.target.setSelectionRange(formatted.length, formatted.length);
+            });
+
+            /* ⭐ Formatear si viene de la base sin formato */
+            if (input.value && !/^\(\d{3}\) \d{3}-\d{4}$/.test(input.value)) {
+                input.value = formatPhone(input.value);
+            }
+        }
+
+        async function cargarDatosEmpresa() {
+            const res = await fetch(`${window.location.origin}/empresa/`);
+            if (res.ok) {
+                const data = await res.json();
+                for (const campo in data) {
+                    const input = document.getElementById(campo);
+                    if (input) {
+                        if (input.type === "checkbox") {
+                            input.checked = data[campo];
+                        } else {
+                            input.value = data[campo] ?? "";
+                        }
+
+                        /* ⭐ APLICAR FORMATO SI ES TELÉFONO */
+                        if (["telefono_principal", "contacto_telefono"].includes(campo)) {
+                            if (input.value && !/^\(\d{3}\) \d{3}-\d{4}$/.test(input.value)) {
+                                input.value = formatPhone(input.value);
+                            }
+                        }
+                    }
+                }
+            } else {
+                alert("No se pudo cargar la información de la empresa.");
+            }
+        }
+
+        async function grabarDatosEmpresa() {
+            const campos = [
+                "nombre_comercial","razon_social","rfc","giro","direccion","colonia","ciudad","estado",
+                "codigo_postal","telefono_principal","email_principal","contacto_nombre","contacto_telefono",
+                "contacto_email","notas","aviso_factura","ventas_tax_general"
+            ];
+
+            const camposNumericos = ["telefono_principal", "contacto_telefono", "codigo_postal", "ventas_tax_general"];
+
+            const payload = {};
+
+            campos.forEach(id => {
+                const input = document.getElementById(id);
+
+                if (input.type === "checkbox") {
+                    payload[id] = input.checked;
+                } else {
+                    if (camposNumericos.includes(id)) {
+                        payload[id] = input.value.replace(/\D/g, "");
+                    } else {
+                        payload[id] = input.value;
+                    }
+                }
+            });
+
+            const res = await fetch(`${window.location.origin}/empresa/`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert("Datos actualizados correctamente.");
+            } else {
+                alert("Error al actualizar los datos.");
+            }
+        }
+
+        function cancelarCambios() {
+            cargarDatosEmpresa();
+        }
+
+        window.onload = () => {
+            cargarDatosEmpresa();
+            applyPhoneFormat("telefono_principal");
+            applyPhoneFormat("contacto_telefono");
+        };
+    </script>
+</head>
+
+<body>
+    <h1>Datos de la Empresa</h1>
+
+    <form onsubmit="event.preventDefault(); grabarDatosEmpresa();">
+        <label>Nombre Comercial: <input type="text" id="nombre_comercial" required></label>
+        <label>Razón Social: <input type="text" id="razon_social" required></label>
+        <label>RFC: <input type="text" id="rfc" required></label>
+
+        <label>Giro: <input type="text" id="giro"></label>
+        <label>Dirección: <input type="text" id="direccion"></label>
+        <label>Colonia: <input type="text" id="colonia"></label>
+
+        <label>Ciudad: <input type="text" id="ciudad"></label>
+        <label>Estado: <input type="text" id="estado"></label>
+        <label>Código Postal: <input type="text" id="codigo_postal"></label>
+
+        <label>Teléfono Principal:
+            <input type="tel" id="telefono_principal" placeholder="Ej: (555) 123-4567">
+        </label>
+        <label>Email Principal: <input type="email" id="email_principal"></label>
+        <label>Contacto Nombre: <input type="text" id="contacto_nombre"></label>
+
+        <label>Contacto Teléfono:
+            <input type="tel" id="contacto_telefono" placeholder="Ej: (558) 765-4321">
+        </label>
+        <label>Contacto Email: <input type="email" id="contacto_email"></label>
+        <label>Aviso Factura: <input type="checkbox" id="aviso_factura"></label>
+
+        <label>IVA General (%): <input type="number" step="0.01" id="ventas_tax_general"></label>
+
+        <label class="full-width">Notas: <textarea id="notas"></textarea></label>
+
+        <div class="buttons">
+            <button type="submit">Grabar</button>
+            <button type="button" onclick="cancelarCambios()">Cancelar</button>
+            <a href="/menu" class="btn-salir">Salir</a>
+        </div>
+    </form>
+</body>
+</html>

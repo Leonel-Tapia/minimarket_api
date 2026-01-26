@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>💳 Pagos de la compra</h2>
+  <p><strong>ID compra:</strong> {{ id_compra }}</p>
+
+  {% if mensaje %}
+    <div class="alert alert-info">{{ mensaje }}</div>
+  {% endif %}
+
+  <!-- 🧾 Historial de pagos -->
+  <h4>Historial de pagos</h4>
+  <table class="table table-bordered table-striped">
+    <thead class="table-dark">
+      <tr>
+        <th>Fecha</th>
+        <th>Monto</th>
+        <th>Método</th>
+        <th>Usuario</th>
+        <th>Observaciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pago in historial_pagos %}
+      <tr>
+        <td>{{ pago[2].strftime("%m-%d-%Y") }}</td>
+        <td>${{ "{:,.2f}".format(pago[3]) }}</td>
+        <td>{{ pago[4] or "-" }}</td>
+        <td>{{ pago[5] or "-" }}</td>
+        <td>{{ pago[6] or "-" }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" class="text-center">No hay pagos registrados.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ➕ Registrar nuevo pago -->
+  <h4>Registrar nuevo pago</h4>
+  <form method="post" action="/pagos/registrar">
+    <input type="hidden" name="id_compra" value="{{ id_compra }}">
+    <div class="row mb-3">
+      <div class="col-md-3">
+        <label for="fecha_pago" class="form-label">Fecha</label>
+        <input type="date" name="fecha_pago" class="form-control" required>
+      </div>
+      <div class="col-md-3">
+        <label for="monto_pago" class="form-label">Monto</label>
+        <input type="number" step="0.01" name="monto_pago" class="form-control" required>
+      </div>
+      <div class="col-md-3">
+        <label for="forma_pago" class="form-label">Método</label>
+        <input type="text" name="forma_pago" class="form-control" placeholder="Efectivo, transferencia...">
+      </div>
+      <div class="col-md-3">
+        <label for="usuario" class="form-label">Usuario</label>
+        <input type="text" name="usuario" class="form-control" required>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-md-12">
+        <label for="observaciones" class="form-label">Observaciones</label>
+        <input type="text" name="observaciones" class="form-control" placeholder="Opcional">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Registrar pago</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+<!-- 📄 Ruta: app/templates/devoluciones/proveedores_devoluciones_editar.html -->
+
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <h3 class="mb-4">Editar devolución #{{ devolucion.id_devolucion }}</h3>
+
+    <!-- Información del proveedor -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            Información del proveedor
+        </div>
+        <div class="card-body">
+            <p><strong>Proveedor:</strong> {{ devolucion.nombre_proveedor }}</p>
+            <p><strong>Fecha devolución:</strong> {{ devolucion.fecha_devolucion }}</p>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <form method="post" action="/devoluciones/editar">
+
+        <input type="hidden" name="id_devolucion" value="{{ devolucion.id_devolucion }}">
+
+        <!-- Motivo y notas -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Motivo:</label>
+                <input type="text" name="motivo" class="form-control" value="{{ devolucion.motivo }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Notas:</label>
+                <input type="text" name="notas" class="form-control" value="{{ devolucion.notas }}">
+            </div>
+        </div>
+
+        <!-- Detalle de productos -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                Productos devueltos
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad devuelta</th>
+                                <th>Precio unitario</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in detalle %}
+                            <tr>
+                                <td>{{ item.nombre_producto }}</td>
+
+                                <!-- ID del detalle -->
+                                <input type="hidden" name="ids_detalle" value="{{ item.id_detalle }}">
+
+                                <!-- Cantidad editable -->
+                                <td>
+                                    <input type="number"
+                                           name="cantidades_devuelta_nueva"
+                                           class="form-control"
+                                           min="0"
+                                           value="{{ item.cantidad_devuelta }}">
+                                </td>
+
+                                <td>${{ "%.2f"|format(item.precio_unitario) }}</td>
+                                <td>${{ "%.2f"|format(item.subtotal) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Opciones -->
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="ajustar_inventario" id="ajustar_inventario">
+            <label class="form-check-label" for="ajustar_inventario">
+                Ajustar inventario según cambios
+            </label>
+        </div>
+
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" name="ajustar_saldo" id="ajustar_saldo">
+            <label class="form-check-label" for="ajustar_saldo">
+                Ajustar saldo del proveedor
+            </label>
+        </div>
+
+        <!-- Botones -->
+        <button type="submit" class="btn btn-success">💾 Guardar cambios</button>
+
+        <a href="/proveedores/dashboard?id_proveedor={{ devolucion.id_proveedor }}"
+           class="btn btn-secondary ms-2">
+            ↩️ Volver
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

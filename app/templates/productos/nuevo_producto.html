@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registrar Nuevo Producto</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4faff;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      color: #003366;
+      margin-bottom: 20px;
+    }
+    form {
+      max-width: 1100px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      font-size: 13px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px 20px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    input, textarea {
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    textarea {
+      resize: vertical;
+      height: 50px;
+    }
+    .full-width {
+      grid-column: span 3;
+      text-align: center;
+    }
+    button {
+      margin: 6px;
+      padding: 8px 18px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .cancelar {
+      background-color: #6c757d;
+    }
+    .cancelar:hover {
+      background-color: #5a6268;
+    }
+    .menu {
+      background-color: #28a745;
+    }
+    .menu:hover {
+      background-color: #218838;
+    }
+    .mensaje-error {
+      color: #721c24;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Registrar Nuevo Producto</h2>
+
+  <div id="mensaje" class="mensaje-error" style="display:none;"></div>
+
+  <form action="/productos/nuevo" method="post">
+    <div class="form-group"><label>Código Parte: *</label><input type="text" name="codigo_parte" required></div>
+    <div class="form-group"><label>Código Barras:</label><input type="text" name="codigo_barras"></div>
+    <div class="form-group"><label>Descripción: *</label><input type="text" name="descripcion" required></div>
+
+    <div class="form-group"><label>Notas:</label><textarea name="notas"></textarea></div>
+
+    <div class="form-group"><label>Precio Venta: *</label><input type="number" name="precio_venta" id="precio_venta" step="0.01" min="0" required></div>
+    <div class="form-group"><label>Costo:</label><input type="number" name="costo" id="costo" step="0.01" min="0"></div>
+    <div class="form-group"><label>Margen de Utilidad (%):</label>
+      <input type="number" name="margen_utilidad" id="margen_utilidad" step="0.01" min="0" max="100" readonly tabindex="-1"
+             style="background-color: #e9ecef; color: #333;">
+    </div>
+
+    <div class="form-group"><label>Stock Mínimo: *</label><input type="number" name="stock_minimo" min="0" required></div>
+    <div class="form-group"><label>Fecha Vigencia: *</label><input type="date" name="fecha_vigencia" id="fecha_vigencia" required></div>
+    <div class="form-group"><label>Proveedor:</label><input type="text" name="proveedor"></div>
+
+    <div class="form-group"><label>Tipo Producto:</label><input type="text" name="tipo_producto"></div>
+    <div class="form-group"><label>Imagen:</label><input type="text" name="imagen"></div>
+    <div class="form-group"><label>Categoría:</label><input type="text" name="categoria"></div>
+
+    <div class="form-group"><label>Unidad Medida:</label><input type="text" name="unidad_medida"></div>
+    <div class="form-group"><label>Ubicación:</label><input type="text" name="ubicacion"></div>
+    <div class="form-group"><label>Impuesto (%): *</label><input type="number" name="ventas_tax" id="ventas_tax" step="0.01" min="0" max="100" required></div>
+
+    <div class="full-width">
+      <button type="submit">💾 Guardar</button>
+      <button type="reset" class="cancelar">🧹 Cancelar</button>
+      <button type="button" class="menu" onclick="window.location.href='/menu'">🏠 Menú</button>
+      <button type="button" class="menu" onclick="window.location.href='/inventario'">📦 Inventario</button>
+    </div>
+  </form>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const venta = document.getElementById("precio_venta");
+      const costo = document.getElementById("costo");
+      const margen = document.getElementById("margen_utilidad");
+      const fechaVigencia = document.getElementById("fecha_vigencia");
+      const impuesto = document.getElementById("ventas_tax");
+      const mensaje = document.getElementById("mensaje");
+
+      function mostrarError(texto) {
+        mensaje.textContent = texto;
+        mensaje.style.display = "block";
+      }
+
+      function limpiarError() {
+        mensaje.textContent = "";
+        mensaje.style.display = "none";
+      }
+
+      function calcularMargen() {
+        limpiarError();
+        const pv = parseFloat(venta.value);
+        const ct = parseFloat(costo.value);
+
+        if (!isNaN(pv) && !isNaN(ct)) {
+          if (ct > pv) {
+            mostrarError("El costo no puede ser mayor que el precio de venta.");
+            costo.focus();
+            costo.setSelectionRange(0, 0);
+            margen.value = "";
+            return;
+          }
+
+          if (pv > 0) {
+            const resultado = ((pv - ct) / pv) * 100;
+            margen.value = resultado.toFixed(2);
+          } else {
+            margen.value = "";
+          }
+        } else {
+          margen.value = "";
+        }
+      }
+
+      venta.addEventListener("input", calcularMargen);
+      costo.addEventListener("input", calcularMargen);
+
+      // Validación de fecha
+      if (fechaVigencia) {
+        const hoy = new Date();
+        const semanaAtras = new Date(hoy);
+        semanaAtras.setDate(hoy.getDate() - 7);
+        const minFecha = semanaAtras.toISOString().split("T")[0];
+        const maxFecha = "2100-12-31";
+
+        fechaVigencia.setAttribute("min", minFecha);
+        fechaVigencia.setAttribute("max", maxFecha);
+
+        function validarFechaVigencia() {
+          limpiarError();
+          const valor = fechaVigencia.value;
+          const año = parseInt(valor.split("-")[0]);
+
+          if (valor < minFecha || valor > maxFecha || año < 1900 || año > 2100) {
+            mostrarError("La fecha debe estar entre hace 7 días y el año 2100.");
+            fechaVigencia.value = minFecha;
+            fechaVigencia.focus();
+            fechaVigencia.setSelectionRange(0, 0);
+          }
+        }
+
+        fechaVigencia.addEventListener("blur", validarFechaVigencia);
+        fechaVigencia.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            validarFechaVigencia();
+          }
+        });
+      }
+
+      // Validación de impuesto máximo permitido (30%)
+      if (impuesto) {
+        function validarImpuesto() {
+          limpiarError();
+          const valor = parseFloat(impuesto.value);
+          if (!isNaN(valor) && valor > 30) {
+            mostrarError("El impuesto no puede ser mayor al 30%.");
+            impuesto.focus();
+            impuesto.setSelectionRange(0, 0);
+            impuesto.value = "";
+          }
+        }
+
+        impuesto.addEventListener("blur", validarImpuesto);
+        impuesto.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            validarImpuesto();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

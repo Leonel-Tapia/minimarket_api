@@ -1,0 +1,133 @@
+<!-- 📄 Ruta: app/templates/productos/inventario_lista.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Inventario de Productos</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e6f0ff;
+      margin: 0;
+      padding: 0;
+    }
+    h2 {
+      text-align: center;
+      margin-top: 30px;
+      color: #003366;
+    }
+    .regreso {
+      width: 90%;
+      margin: 20px auto;
+      text-align: left;
+    }
+    .regreso a {
+      text-decoration: none;
+      background-color: #6c757d;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .regreso a:hover {
+      background-color: #5a6268;
+    }
+    .buscador {
+      width: 90%;
+      margin: 20px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .buscador select, .buscador button {
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .buscador button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    .buscador button:hover {
+      background-color: #0056b3;
+    }
+    .contador {
+      width: 90%;
+      margin: 10px auto;
+      text-align: right;
+      font-size: 14px;
+      color: #333;
+    }
+    table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background-color: #fff;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h2>Inventario de Productos Activos</h2>
+
+  <div class="regreso">
+    <a href="/menu">← Regresar al menú principal</a>
+  </div>
+
+  <form class="buscador" method="get" action="/inventario/lista">
+    <label for="q">Buscar producto:</label>
+    <select name="q" id="q">
+      <option value="">-- Selecciona --</option>
+      {% for p in productos %}
+        <option value="{{ p.descripcion }}">{{ p.descripcion }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Buscar</button>
+    <a href="/inventario/lista"><button type="button">Reestablecer</button></a>
+  </form>
+
+  <div class="contador">
+    Mostrando {{ filtrados }} de {{ total }} productos
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Descripción</th>
+        <th>Precio</th>
+        <th>Stock mínimo</th>
+        <th>Proveedor</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in productos %}
+      <tr>
+        <td>{{ p.id }}</td>
+        <td>{{ p.descripcion }}</td>
+        <td>${{ "%.2f"|format(p.precio_venta) }}</td>
+        <td>{{ p.stock_minimo or "—" }}</td>
+        <td>{{ p.proveedor or "—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

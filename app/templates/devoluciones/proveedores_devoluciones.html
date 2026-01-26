@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Devoluciones al proveedor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-4">
+    <!-- Encabezado con botón de regreso -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="text-warning mb-0">↩️ Devoluciones al proveedor</h2>
+      <a href="/proveedores/proveedor_dashboard.html?id_proveedor={{ id_proveedor }}" class="btn btn-secondary">
+        ⬅️ Regresar al Dashboard
+      </a>
+    </div>
+
+    <p><strong>ID proveedor:</strong> {{ id_proveedor }} — <strong>Nombre:</strong> {{ nombre_proveedor }}</p>
+
+    {% if mensaje %}
+      <div class="alert alert-info">{{ mensaje }}</div>
+    {% endif %}
+
+    <!-- 🧾 Historial de devoluciones -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-warning fw-bold">Historial de devoluciones</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Fecha devolución</th>
+                <th>Motivo</th>
+                <th>Total devolución</th>
+                <th>Notas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for devolucion in historial_devoluciones %}
+              <tr>
+                <td>{{ devolucion[1] }}</td> <!-- fecha_devolucion -->
+                <td>{{ devolucion[2] }}</td> <!-- motivo -->
+                <td>${{ "%.2f"|format(devolucion[3]) }}</td> <!-- total_devolucion -->
+                <td>{{ devolucion[4] or "-" }}</td> <!-- notas -->
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="4" class="text-center">No hay devoluciones registradas.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ➕ Registrar nueva devolución -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white fw-bold">Registrar nueva devolución</div>
+      <div class="card-body">
+        <form method="post" action="/devoluciones/registrar">
+          <input type="hidden" name="id_proveedor" value="{{ id_proveedor }}">
+          <div class="row mb-3">
+            <div class="col-md-3">
+              <label for="fecha_devolucion" class="form-label">Fecha devolución</label>
+              <input type="date" name="fecha_devolucion" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+              <label for="motivo" class="form-label">Motivo</label>
+              <input type="text" name="motivo" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label for="total_devolucion" class="form-label">Total devolución</label>
+              <input type="number" step="0.01" name="total_devolucion" class="form-control" required>
+            </div>
+            <div class="col-md-2">
+              <label for="notas" class="form-label">Notas</label>
+              <input type="text" name="notas" class="form-control" placeholder="Opcional">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Registrar devolución</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

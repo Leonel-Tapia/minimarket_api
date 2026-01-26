@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registrar Nuevo Proveedor</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { text-align: center; margin-bottom: 20px; }
+    form { max-width: 700px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    label { display: flex; flex-direction: column; font-weight: bold; }
+    input, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+    textarea { resize: vertical; grid-column: span 2; }
+    .form-actions { grid-column: span 2; display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+    .form-actions button { padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+    .btn-guardar { background-color: #28a745; color: white; }
+    .btn-cancelar { background-color: #6c757d; color: white; }
+    .estado-checkbox { display: flex; align-items: center; gap: 10px; grid-column: span 2; justify-content: center; margin-top: 10px; }
+    .help { font-weight: normal; color: #666; margin-top: 5px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Registrar Nuevo Proveedor</h1>
+
+  <!-- Corregido: action apunta a /proveedor/guardar y se fuerza autocomplete="off" -->
+  <form method="POST" action="/proveedor/guardar" novalidate autocomplete="off">
+    <label>Nombre *
+      <input type="text" name="nombre" required>
+    </label>
+
+    <label>RUC *
+      <input type="text" name="ruc" required>
+    </label>
+
+    <label>Dirección *
+      <input type="text" name="direccion" required>
+    </label>
+
+    <!-- Teléfono principal con formato automático -->
+    <label>Teléfono *
+      <input
+        id="telefono"
+        type="text"
+        name="telefono"
+        required
+        pattern="\(\d{3}\) \d{3}-\d{4}"
+        placeholder="(000) 000-0000"
+        inputmode="numeric"
+        maxlength="14">
+      <span class="help">Formato requerido: (xxx) xxx-xxxx</span>
+    </label>
+
+    <label>Email *
+      <input type="email" name="email" required>
+    </label>
+
+    <label>Contacto Nombre
+      <input type="text" name="contacto_nombre">
+    </label>
+
+    <!-- Contacto Teléfono con formato automático -->
+    <label>Contacto Teléfono
+      <input
+        id="contacto_telefono"
+        type="text"
+        name="contacto_telefono"
+        pattern="\(\d{3}\) \d{3}-\d{4}"
+        placeholder="(000) 000-0000"
+        inputmode="numeric"
+        maxlength="14">
+      <span class="help">Formato: (xxx) xxx-xxxx. Se aplica automáticamente al escribir.</span>
+    </label>
+
+    <label>Contacto Email
+      <input type="email" name="contacto_email">
+    </label>
+
+    <div class="estado-checkbox">
+      <label><input type="checkbox" name="estado" checked> Activo</label>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-guardar">Guardar</button>
+      <!-- Corregido: Cancelar apunta al catálogo -->
+      <button type="button" class="btn-cancelar" onclick="window.location.href='/proveedor/catalogo'">Cancelar</button>
+    </div>
+  </form>
+
+  <script>
+    function formatPhone(value) {
+      const digits = value.replace(/\D/g, '').slice(0, 10);
+      const part1 = digits.slice(0, 3);
+      const part2 = digits.slice(3, 6);
+      const part3 = digits.slice(6, 10);
+      if (digits.length > 6) return `(${part1}) ${part2}-${part3}`;
+      if (digits.length > 3) return `(${part1}) ${part2}`;
+      if (digits.length > 0) return `(${part1}`;
+      return '';
+    }
+
+    function applyPhoneFormat(inputId) {
+      const input = document.getElementById(inputId);
+      if (input) {
+        input.addEventListener('input', (e) => {
+          const formatted = formatPhone(e.target.value);
+          e.target.value = formatted;
+          e.target.setSelectionRange(formatted.length, formatted.length);
+        });
+      }
+    }
+
+    applyPhoneFormat('telefono');
+    applyPhoneFormat('contacto_telefono');
+  </script>
+</body>
+</html>

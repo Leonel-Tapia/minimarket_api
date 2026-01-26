@@ -1,0 +1,55 @@
+<!-- 📁 Ruta: app/templates/productos/inventario_switchboard.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Inventario</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f8fc;
+      padding: 40px;
+      text-align: center;
+    }
+    h2 {
+      color: #003366;
+      margin-bottom: 30px;
+    }
+    .boton-panel {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .volver {
+      margin-top: 30px;
+    }
+    .volver button {
+      background-color: #6c757d;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Panel de Inventario</h2>
+
+  <button onclick="window.location.href='/productos/nuevo'" class="boton-panel">📝 Nuevo producto</button>
+  <button onclick="window.location.href='/catalogo'" class="boton-panel">📦 Gestionar productos</button>
+
+  <div class="volver">
+    <button onclick="window.location.href='/menu'">← Volver al Panel</button>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Catálogo de Productos</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fefefe;
+      margin: 0;
+    }
+
+    h2 {
+      text-align: center;
+      color: #003366;
+      margin: 10px 0 5px;
+      font-size: 22px;
+    }
+
+    .contador-productos {
+      text-align: center;
+      font-size: 13px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .barra-superior {
+      position: sticky;
+      top: 0;
+      background-color: #ffffff;
+      padding: 10px 20px;
+      border-bottom: 1px solid #ccc;
+      z-index: 100;
+    }
+
+    .acciones-superior {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .volver-panel {
+      background-color: #007bff;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .busqueda-producto {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .busqueda-producto label {
+      font-weight: bold;
+      font-size: 13px;
+      margin-right: 5px;
+    }
+
+    .busqueda-producto input[list],
+    .busqueda-producto select {
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      min-width: 180px;
+      font-size: 13px;
+    }
+
+    .limpiar-busqueda {
+      background-color: #6c757d;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #f4faff;
+      margin: 0 auto;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    tr.activo {
+      background-color: #e6f7ff !important;
+      color: #003366;
+    }
+
+    tr.inactivo {
+      background-color: #ffe6e6 !important;
+      color: #555;
+      font-style: italic;
+    }
+
+    tr.resaltado {
+      background-color: #fff3cd !important;
+    }
+
+    .acciones {
+      display: flex;
+      gap: 8px;
+    }
+
+    .acciones button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .editar {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .editar:disabled {
+      background-color: #cccccc;
+      color: #666666;
+      cursor: not-allowed;
+    }
+  </style>
+
+  <script>
+    function buscarPorDescripcion() {
+      const input = document.getElementById("busqueda_descripcion");
+      const filtro = input.value.toLowerCase();
+      filtrarTabla(filtro, null, null);
+    }
+
+    function buscarPorParte() {
+      const input = document.getElementById("busqueda_parte");
+      const filtro = input.value.toLowerCase();
+      filtrarTabla(null, filtro, null);
+    }
+
+    function filtrarPorEstado() {
+      const estado = document.getElementById("filtro_estado").value;
+      filtrarTabla(null, null, estado);
+    }
+
+    function limpiarBusqueda() {
+      document.getElementById("busqueda_descripcion").value = "";
+      document.getElementById("busqueda_parte").value = "";
+      document.getElementById("filtro_estado").value = "todos";
+      filtrarTabla(null, null, "todos");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function filtrarTabla(descFiltro, parteFiltro, estadoFiltro) {
+      const filas = document.querySelectorAll("tbody tr");
+
+      filas.forEach(fila => {
+        fila.classList.remove("resaltado");
+        fila.style.display = "";
+
+        const descripcion = fila.querySelectorAll("td")[2].textContent.toLowerCase();
+        const parte = fila.querySelectorAll("td")[1].textContent.toLowerCase();
+        const estado = fila.querySelectorAll("td")[5].textContent.toLowerCase();
+
+        const coincideDescripcion = descFiltro ? descripcion.includes(descFiltro) : true;
+        const coincideParte = parteFiltro ? parte.includes(parteFiltro) : true;
+        const coincideEstado = estadoFiltro && estadoFiltro !== "todos" ? estado === estadoFiltro : true;
+
+        if (coincideDescripcion && coincideParte && coincideEstado) {
+          fila.classList.add("resaltado");
+        } else {
+          fila.style.display = "none";
+        }
+      });
+    }
+  </script>
+</head>
+<body>
+
+  <div class="barra-superior">
+    <h2>Catálogo de Productos</h2>
+
+    {% set total = productos | length %}
+    {% set activos = productos | selectattr("inactivo", "equalto", False) | list | length %}
+    {% set inactivos = productos | selectattr("inactivo", "equalto", True) | list | length %}
+    <div class="contador-productos">
+      Total: {{ total }} | Activos: {{ activos }} | Inactivos: {{ inactivos }}
+    </div>
+
+    <div class="acciones-superior">
+      <div class="busqueda-producto">
+        <div>
+          <label for="busqueda_descripcion">Descripción:</label>
+          <input type="text" id="busqueda_descripcion" list="lista_descripciones" oninput="buscarPorDescripcion()" placeholder="Ej: test CO545">
+          <datalist id="lista_descripciones">
+            {% for producto in productos %}
+              <option value="{{ producto.descripcion }}">
+            {% endfor %}
+          </datalist>
+        </div>
+
+        <div>
+          <label for="busqueda_parte">Código Parte:</label>
+          <input type="text" id="busqueda_parte" list="lista_partes" oninput="buscarPorParte()" placeholder="Ej: CO545">
+          <datalist id="lista_partes">
+            {% for producto in productos %}
+              <option value="{{ producto.codigo_parte }}">
+            {% endfor %}
+          </datalist>
+        </div>
+
+        <div>
+          <label for="filtro_estado">Estado:</label>
+          <select id="filtro_estado" onchange="filtrarPorEstado()">
+            <option value="todos">Todos</option>
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+          </select>
+        </div>
+
+        <button type="button" class="limpiar-busqueda" onclick="limpiarBusqueda()">🧹 Limpiar búsqueda</button>
+      </div>
+
+      <button type="button" onclick="window.location.href='/inventario/switchboard'" class="volver-panel">
+        🔙 Volver al Panel
+      </button>
+    </div>
+  </div>
+
+  {% if error %}
+    <p style="color: red; text-align: center;">{{ error }}</p>
+  {% endif %}
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Código Parte</th>
+        <th>Descripción</th>
+        <th>Precio</th>
+        <th>Costo</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for producto in productos %}
+        <tr class="{% if producto.inactivo %}inactivo{% else %}activo{% endif %}">
+          <td>{{ producto.id }}</td>
+          <td>{{ producto.codigo_parte }}</td>
+          <td>{{ producto.descripcion }}</td>
+          <td>${{ '%.2f' | format(producto.precio_venta) }}</td>
+          <td>${{ '%.2f' | format(producto.costo) }}</td>
+          <td>{% if producto.inactivo %}inactivo{% else %}activo{% endif %}</td>
+          <td class="acciones">
+            <button class="editar" {% if producto.inactivo %}disabled{% endif %} onclick="window.location.href='/productos/editar/{{ producto.id }}'">✏️ Editar</button>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</body>
+</html>

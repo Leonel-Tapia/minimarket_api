@@ -1,0 +1,220 @@
+/* ===========================
+   🎨 PALETA DE COLORES BASE
+   =========================== */
+:root {
+  --color-primario: #3498db;
+  --color-secundario: #2c3e50;
+  --color-exito: #27ae60;
+  --color-error: #e74c3c;
+  --color-fondo: #f4f4f4;
+  --color-texto: #333333;
+  --color-borde: #dddddd;
+  --color-hover: #2980b9;
+}
+
+/* ===========================
+   🔤 TIPOGRAFÍA
+   =========================== */
+body {
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  color: var(--color-texto);
+  background-color: var(--color-fondo);
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3 {
+  font-weight: bold;
+  color: var(--color-secundario);
+  margin: 0 0 10px 0;
+}
+
+/* ===========================
+   🧱 BOTONES
+   =========================== */
+.boton {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.boton-primario {
+  background-color: var(--color-primario);
+  color: white;
+}
+
+.boton-primario:hover {
+  background-color: var(--color-hover);
+}
+
+.boton-exito {
+  background-color: var(--color-exito);
+  color: white;
+}
+
+.boton-exito:hover {
+  background-color: #1e8449;
+}
+
+.boton-cancelar {
+  background-color: #bdc3c7;
+  color: #2c3e50;
+}
+
+.boton-cancelar:hover {
+  background-color: #95a5a6;
+}
+
+/* ===========================
+   📝 FORMULARIOS
+   =========================== */
+.input-texto {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid var(--color-borde);
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.checkbox {
+  transform: scale(1.2);
+  margin-right: 5px;
+}
+
+.formulario table {
+  width: 100%;
+}
+
+.formulario td {
+  padding: 8px;
+}
+
+.formulario .acciones {
+  margin-top: 15px;
+  text-align: right;
+}
+
+/* ===========================
+   📦 CONTENEDORES Y LAYOUT
+   =========================== */
+.contenedor {
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  margin: 20px;
+}
+
+/* ===========================
+   📋 TABLAS
+   =========================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid var(--color-borde);
+  text-align: left;
+}
+
+thead {
+  background-color: #ecf0f1;
+}
+
+tr.activo {
+  background-color: #e8f8e8;
+}
+
+tr.inactivo {
+  background-color: #fcecec;
+}
+
+.notas {
+  width: 30%;
+}
+
+/* ===========================
+   🔍 BÚSQUEDA
+   =========================== */
+.busqueda {
+  margin-top: 10px;
+}
+
+.busqueda-titulo {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+#buscar {
+  padding: 6px;
+  width: 250px;
+  border-radius: 4px;
+  border: 1px solid var(--color-borde);
+}
+
+/* ===========================
+   ✅ MENSAJES DE ESTADO
+   =========================== */
+.mensaje-exito {
+  background-color: #e0ffe0;
+  border: 1px solid var(--color-exito);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  color: #006600;
+}
+
+.mensaje-error {
+  background-color: #ffe0e0;
+  border: 1px solid var(--color-error);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  color: #a00000;
+}
+
+/* ===========================
+   🪟 MODAL
+   =========================== */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-contenido {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.cerrar {
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* ===========================
+   📐 ESPACIADO UTILITARIO
+   =========================== */
+.mt-10 { margin-top: 10px; }
+.mb-10 { margin-bottom: 10px; }
+.p-10 { padding: 10px; }
+.p-20 { padding: 20px; }
+.texto-centrado { text-align: center; }

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">Devoluciones al proveedor</h2>
+
+    <h4 class="text-primary">Proveedor: {{ nombre_proveedor }}</h4>
+
+    <hr>
+
+    <!-- ============================
+         PRODUCTOS DISPONIBLES
+    ============================= -->
+    <h4 class="mt-4">Productos disponibles para devolución</h4>
+
+    <form action="/devoluciones/registrar" method="post">
+
+        <input type="hidden" name="id_proveedor" value="{{ id_proveedor }}">
+
+        <table class="table table-bordered table-striped mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>Compra</th>
+                    <th>Producto</th>
+                    <th>Cant. comprada</th>
+                    <th>Cant. devuelta</th>
+                    <th>Disponible</th>
+                    <th>Precio</th>
+                    <th>Devolver</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in Devoluciones_detalle %}
+                <tr>
+                    <td>{{ item.id_compra }}</td>
+                    <td>{{ item.nombre_producto }}</td>
+                    <td>{{ item.cantidad_comprada }}</td>
+                    <td>{{ item.cantidad_devuelta }}</td>
+                    <td>{{ item.cantidad_disponible }}</td>
+
+                    <td>${{ item.precio_unitario }}</td>
+
+                    <td>
+                        <input type="hidden" name="id_compra" value="{{ item.id_compra }}">
+                        <input type="hidden" name="id_producto" value="{{ item.id_producto }}">
+                        <input type="hidden" name="cantidad_disponible" value="{{ item.cantidad_disponible }}">
+                        <input type="hidden" name="precio_unitario" value="{{ item.precio_unitario }}">
+
+                        <input type="number" step="0.01" min="0" max="{{ item.cantidad_disponible }}"
+                               name="cantidad_devolver" class="form-control devolver-input" value="0">
+                    </td>
+
+                    <td>
+                        <input type="text" name="subtotal" class="form-control subtotal-field" value="0.00" readonly>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="mt-3">
+            <label><strong>Total devolución:</strong></label>
+            <input type="text" name="total_devolucion" id="total_devolucion"
+                   class="form-control w-25" value="0.00" readonly>
+        </div>
+
+        <div class="mt-3">
+            <label>Motivo:</label>
+            <input type="text" name="motivo" class="form-control" required>
+        </div>
+
+        <div class="mt-3">
+            <label>Notas:</label>
+            <textarea name="notas" class="form-control"></textarea>
+        </div>
+
+        <div class="mt-3">
+            <label>Fecha devolución:</label>
+            <input type="date" name="fecha_devolucion" class="form-control w-25" required>
+        </div>
+
+        <button class="btn btn-success mt-4">Registrar devolución</button>
+        <a href="/proveedores/{{ id_proveedor }}/dashboard" class="btn btn-secondary mt-4">Regresar al Dashboard</a>
+
+    </form>
+</div>
+
+<script>
+    // Cálculo dinámico de subtotales y total
+    document.querySelectorAll(".devolver-input").forEach((input, index) => {
+        input.addEventListener("input", () => {
+            const row = input.closest("tr");
+            const precio = parseFloat(row.querySelector("input[name='precio_unitario']").value);
+            const cantidad = parseFloat(input.value || 0);
+            const subtotal = precio * cantidad;
+
+            row.querySelector(".subtotal-field").value = subtotal.toFixed(2);
+
+            // Recalcular total
+            let total = 0;
+            document.querySelectorAll(".subtotal-field").forEach(s => {
+                total += parseFloat(s.value || 0);
+            });
+
+            document.getElementById("total_devolucion").value = total.toFixed(2);
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Catálogo de Proveedores</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { text-align: center; margin-bottom: 10px; }
+    .top-buttons { text-align: center; margin-bottom: 20px; }
+    .top-buttons button, .top-buttons a {
+      margin: 0 10px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-menu { background-color: #007bff; }
+    .btn-nuevo { background-color: #28a745; }
+    .btn-editar { background-color: #ffc107; }
+    .btn-inactivar { background-color: #dc3545; }
+    .btn-gestionar { background-color: #17a2b8; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    tr.selected { background-color: #d0ebff; font-weight: bold; }
+    tbody tr[data-estado="false" i], tbody tr[data-estado="0" i], tbody tr[data-estado="inactivo" i] {
+      background-color: #f8d7da; color: #721c24;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <h1>Catálogo de Proveedores</h1>
+
+  <div class="top-buttons">
+    <button class="btn-menu" onclick="window.location.href='/menu'">🏠 Regresar al Menú</button>
+    <a href="/proveedor/nuevo.html" class="btn-nuevo">Nuevo Proveedor</a>
+    <button class="btn-editar" id="btnEditar" onclick="abrirModalEditar()" disabled>Editar Proveedor</button>
+    <button class="btn-inactivar" id="btnInactivar" onclick="inactivarSeleccionado()" disabled>Inactivar Proveedor</button>
+    <button class="btn-gestionar" id="btnGestionar" onclick="gestionarProveedor()" disabled>Gestionar</button>
+  </div>
+
+  <!-- 🔍 BUSCADOR INTELIGENTE -->
+  <div style="margin-bottom: 15px;">
+    <label for="buscador"><strong>Buscar proveedor:</strong></label>
+    <input type="text" id="buscador" placeholder="Nombre, teléfono o email..." style="padding: 6px; width: 280px;">
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Teléfono</th>
+        <th>Email</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for proveedor in proveedores %}
+      <tr onclick="seleccionarProveedor(this)"
+          data-id="{{ proveedor.id }}"
+          data-nombre="{{ proveedor.nombre }}"
+          data-telefono="{{ proveedor.telefono }}"
+          data-email="{{ proveedor.email }}"
+          data-estado="{{ proveedor.estado }}">
+        <td>{{ proveedor.id }}</td>
+        <td>{{ proveedor.nombre }}</td>
+        <td>{{ proveedor.telefono }}</td>
+        <td>{{ proveedor.email }}</td>
+        <td>{{ 'Activo' if proveedor.estado else 'Inactivo' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- 📄 PAGINACIÓN -->
+  <div id="paginacion" style="text-align:center; margin-top:20px;"></div>
+
+<script>
+  let proveedorSeleccionado = null;
+
+  function seleccionarProveedor(row) {
+    proveedorSeleccionado = row;
+    document.querySelectorAll("tr").forEach(r => r.classList.remove("selected"));
+    row.classList.add("selected");
+    document.getElementById("btnEditar").disabled = false;
+    document.getElementById("btnInactivar").disabled = false;
+    document.getElementById("btnGestionar").disabled = false;
+  }
+
+  function abrirModalEditar() {
+    if (!proveedorSeleccionado) return;
+    const id = proveedorSeleccionado.dataset.id;
+    window.location.href = `/proveedor/editar_dashboard.html?id=${id}`;
+  }
+
+  function inactivarSeleccionado() {
+    if (!proveedorSeleccionado) return;
+    const id = proveedorSeleccionado.dataset.id;
+    fetch(`/proveedor/inactivar/${id}`, { method: "POST" })
+      .then(() => { window.location.reload(); })
+      .catch(err => { alert("Error al inactivar proveedor: " + err); });
+  }
+
+  function gestionarProveedor() {
+    if (!proveedorSeleccionado) return;
+    const id = proveedorSeleccionado.dataset.id;
+    window.location.href = `/proveedores/${id}/dashboard`;
+  }
+
+  /* 🔍 BUSCADOR INTELIGENTE */
+  document.getElementById("buscador").addEventListener("input", function () {
+    const texto = this.value.toLowerCase();
+
+    document.querySelectorAll("tbody tr").forEach(row => {
+      const nombre = row.dataset.nombre.toLowerCase();
+      const telefono = row.dataset.telefono.toLowerCase();
+      const email = row.dataset.email.toLowerCase();
+
+      row.style.display =
+        nombre.includes(texto) ||
+        telefono.includes(texto) ||
+        email.includes(texto)
+        ? ""
+        : "none";
+    });
+
+    mostrarPagina(1); // Reinicia paginación al buscar
+  });
+
+  /* 📄 PAGINACIÓN */
+  let paginaActual = 1;
+  const filasPorPagina = 10;
+
+  function mostrarPagina(num) {
+    const filas = Array.from(document.querySelectorAll("tbody tr"))
+      .filter(f => f.style.display !== "none");
+
+    const totalPaginas = Math.ceil(filas.length / filasPorPagina);
+    paginaActual = num;
+
+    filas.forEach((fila, index) => {
+      fila.style.display =
+        index >= (num - 1) * filasPorPagina && index < num * filasPorPagina
+          ? ""
+          : "none";
+    });
+
+    generarBotones(totalPaginas);
+  }
+
+  function generarBotones(total) {
+    const contenedor = document.getElementById("paginacion");
+    contenedor.innerHTML = "";
+
+    for (let i = 1; i <= total; i++) {
+      const btn = document.createElement("button");
+      btn.textContent = i;
+      btn.style.margin = "0 5px";
+      btn.style.padding = "6px 12px";
+      btn.style.cursor = "pointer";
+
+      if (i === paginaActual) {
+        btn.style.backgroundColor = "#007bff";
+        btn.style.color = "white";
+      }
+
+      btn.onclick = () => mostrarPagina(i);
+      contenedor.appendChild(btn);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => mostrarPagina(1));
+</script>
+
+</body>
+</html>

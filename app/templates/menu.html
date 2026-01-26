@@ -1,0 +1,207 @@
+<!-- Ruta: minimarket_api/app/templates/menu.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Menú Principal - Minimarket</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: #333;
+      margin-top: 40px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #bienvenida {
+      font-size: 18px;
+      font-weight: bold;
+      color: #007bff;
+      background-color: #e6f7ff;
+      border: 2px solid #007bff;
+      border-radius: 8px;
+      padding: 12px 24px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .acciones {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .acciones button {
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    .acciones button:hover {
+      background-color: #0056b3;
+    }
+
+    .boton-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .salir-btn {
+      padding: 12px 24px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .salir-btn:hover {
+      background-color: #a71d2a;
+    }
+
+    #logout-msg {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+    }
+
+    .confirm-btn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .confirm-btn:hover {
+      background-color: #218838;
+    }
+
+    .cancel-btn {
+      margin-top: 15px;
+      margin-left: 10px;
+      padding: 10px 20px;
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .cancel-btn:hover {
+      background-color: #5a6268;
+    }
+  </style>
+</head>
+<body>
+  <h2>Menú Principal</h2>
+
+  <p id="bienvenida">Cargando datos de ingreso...</p>
+
+  <div class="acciones">
+    <button onclick="window.location.href='/proveedores/proveedores_catalogo.html'">Proveedores</button>
+    <button onclick="window.location.href='/inventario'">Inventario</button>
+    <button onclick="window.location.href='/reportes'">Reportes</button>
+    <button onclick="window.location.href='/manager'">Manager</button>
+    <button onclick="window.location.href='/empresa/formulario'">Datos de la Empresa</button>
+  </div>
+
+  <div class="boton-container">
+    <button class="salir-btn" onclick="mostrarMensajeSalida()">Cerrar sesión</button>
+  </div>
+
+  <div id="logout-msg">
+    <p>¿Seguro que deseas salir del sistema?</p>
+    <button id="confirm-btn" class="confirm-btn">Sí, cerrar sesión</button>
+    <button id="cancel-btn" class="cancel-btn">Cancelar</button>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const nombre = localStorage.getItem("usuario");
+      const hora = localStorage.getItem("hora_ingreso");
+      const bienvenida = document.getElementById("bienvenida");
+      if (bienvenida) {
+        if (nombre && hora) {
+          bienvenida.textContent = `Bienvenido, ${nombre} — Ingreso: ${hora}`;
+        } else {
+          bienvenida.textContent = "Bienvenido — Ingreso no registrado";
+        }
+      }
+
+      const confirmBtn = document.getElementById("confirm-btn");
+      const cancelBtn = document.getElementById("cancel-btn");
+
+      if (confirmBtn) {
+        confirmBtn.addEventListener("click", ejecutarLogoutSeguro);
+      }
+      if (cancelBtn) {
+        cancelBtn.addEventListener("click", ocultarMensajeSalida);
+      }
+    });
+
+    function mostrarMensajeSalida() {
+      const box = document.getElementById("logout-msg");
+      if (box) box.style.display = "block";
+    }
+
+    function ocultarMensajeSalida() {
+      const box = document.getElementById("logout-msg");
+      if (box) box.style.display = "none";
+    }
+
+    function ejecutarLogoutSeguro() {
+      const confirmBtn = document.getElementById("confirm-btn");
+      if (confirmBtn) confirmBtn.disabled = true;
+
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        document.cookie.split(";").forEach(function (c) {
+          document.cookie = c.trim().split("=")[0] +
+            "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+        });
+      } catch (e) {
+        console.warn("Error limpiando almacenamiento local/cookies:", e);
+      }
+
+      alert("Sesión cerrada correctamente. El sistema se cerrará.");
+      location.replace("/");
+
+      setTimeout(() => {
+        try {
+          window.open('', '_self');
+          window.close();
+        } catch (e) {}
+      }, 200);
+    }
+  </script>
+</body>
+</html>

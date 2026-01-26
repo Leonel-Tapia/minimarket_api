@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Detalle de Compra</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2 { margin-bottom: 10px; }
+    .mensaje {
+      font-size: 13px;
+      color: green;
+      margin-bottom: 8px;
+      font-weight: normal;
+    }
+    .form-linea {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+    .form-linea label {
+      font-weight: bold;
+      margin-right: 5px;
+    }
+    .form-linea select,
+    .form-linea input {
+      padding: 4px;
+      font-size: 13px;
+    }
+    .acciones {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .acciones button,
+    .acciones a {
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .acciones button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    .acciones a {
+      color: #007bff;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+    table th {
+      background-color: #f2f2f2;
+    }
+    table tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Encabezado dinámico con número de factura -->
+  <h2>Proveedor: {{ proveedor.nombre }} — Factura {{ compra.numero_factura }}</h2>
+
+  {% if mensaje %}
+    <div class="mensaje">{{ mensaje }}</div>
+  {% endif %}
+
+  <form method="post" action="/comprasdetalle/agregar">
+    <!-- Se mantiene id_compra oculto para lógica interna, pero no se muestra en pantalla -->
+    <input type="hidden" name="id_compra" value="{{ id_compra }}">
+    <input type="hidden" name="id_proveedor" value="{{ id_proveedor }}">
+
+    <div class="form-linea">
+      <label for="id_producto">Producto:</label>
+      <select name="id_producto" required>
+        <option value="">-- Selecciona --</option>
+        {% for p in productos %}
+          <option value="{{ p[0] }}">{{ p[1] }} — {{ p[2] }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="cantidad">Cantidad:</label>
+      <input type="number" name="cantidad" min="1" required>
+
+      <label for="precio_unitario">Precio Unitario:</label>
+      <input type="number" name="precio_unitario" step="0.01" min="0" required>
+    </div>
+
+    <div class="acciones">
+      <button type="submit">Agregar Producto</button>
+      <a href="/proveedor/catalogo">↩️ Regreso al catálogo</a>
+    </div>
+  </form>
+
+  <!-- Tabla de detalles sin columna ID Compra -->
+  <h2>Detalles de la Compra — Factura {{ compra.numero_factura }}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Código Parte</th>
+        <th>Descripción</th>
+        <th>Precio Unitario</th>
+        <th>Cantidad</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in detalles %}
+      <tr>
+        <td>{{ d[0] }}</td>
+        <td>{{ d[1] }}</td>
+        <td>{{ "%.2f"|format(d[2]) }}</td>
+        <td>{{ d[3] }}</td>
+        <td>{{ "%.2f"|format(d[4]) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p><strong>Total de la compra: ${{ "%.2f"|format(total_compra) }}</strong></p>
+
+</body>
+</html>

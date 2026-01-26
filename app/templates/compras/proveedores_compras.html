@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Compras</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2 { margin-bottom: 10px; }
+    .mensaje { margin-bottom: 15px; font-weight: bold; color: green; }
+    form { margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; align-items: start; }
+    .form-grid div { display: flex; flex-direction: column; }
+    .form-grid label { margin-bottom: 5px; font-weight: bold; }
+    .form-grid input, .form-grid select, .form-grid textarea {
+      width: 100%; padding: 5px; box-sizing: border-box;
+    }
+    .totales { display: flex; gap: 30px; margin-top: 20px; }
+    .totales div { display: flex; flex-direction: column; width: 200px; }
+    .campo-monto label { color: #004080; font-weight: bold; }
+    .campo-monto input { border: 2px solid #004080; background-color: #f0f8ff; font-weight: bold; }
+    .acciones { display: flex; gap: 20px; align-items: center; margin-top: 15px; }
+    .acciones input[type="submit"] { padding: 8px 16px; font-weight: bold; }
+    .acciones a { text-decoration: none; font-weight: bold; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    table th, table td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+    table th { background-color: #f2f2f2; }
+    table tr:nth-child(even) { background-color: #fafafa; }
+    .alerta { color: #b00020; font-weight: bold; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+  <h2>Registro de Compra para el Proveedor: {{ nombre_proveedor }} — Factura {{ numero_factura }}</h2>
+
+  {% if mensaje %}
+    <div class="mensaje">{{ mensaje }}</div>
+  {% endif %}
+
+  <form method="post" action="/compras/registrar">
+    <input type="hidden" name="id_proveedor" value="{{ id_proveedor }}">
+
+    <div class="form-grid">
+      <div>
+        <label for="numero_factura">Número de Factura:</label>
+        <input type="text" name="numero_factura" required>
+      </div>
+
+      <div>
+        <label for="fecha_compra">Fecha de Compra:</label>
+        <input type="date" name="fecha_compra" required onkeydown="return false;">
+      </div>
+
+      <div>
+        <label for="forma_pago">Forma de Pago:</label>
+        <select name="forma_pago" required>
+          <option value="">-- Selecciona --</option>
+          <option value="contado">Contado</option>
+          <option value="credito">Crédito</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="fecha_pago">Fecha de Pago:</label>
+        <input type="date" name="fecha_pago" onkeydown="return false;">
+      </div>
+
+      <div>
+        <label for="periodo_pago">Periodo de Pago (días):</label>
+        <input type="number" name="periodo_pago" min="0" placeholder="0">
+      </div>
+
+      <div>
+        <label for="fecha_vencimiento">Fecha de Vencimiento:</label>
+        <input type="date" name="fecha_vencimiento" required onkeydown="return false;" readonly>
+        <div class="alerta" id="alerta_vencimiento"></div>
+      </div>
+
+      <div>
+        <label for="observaciones">Observaciones:</label>
+        <textarea name="observaciones" rows="2"></textarea>
+      </div>
+
+      <div>
+        <label for="notas">Notas:</label>
+        <textarea name="notas" rows="2"></textarea>
+      </div>
+    </div>
+
+    <div class="totales">
+      <div class="campo-monto">
+        <label for="impuesto">Impuesto ($):</label>
+        <input type="number" name="impuesto" step="0.01" min="0" placeholder="$0.00">
+      </div>
+      <div class="campo-monto">
+        <label for="envio">Envío ($):</label>
+        <input type="number" name="envio" step="0.01" min="0" placeholder="$0.00">
+      </div>
+    </div>
+
+    <div class="acciones">
+      <input type="submit" value="Registrar Compra">
+      <a href="/proveedor/catalogo">↩️ Regreso al catálogo de proveedores</a>
+    </div>
+  </form>
+  <h2>Historial de Compras</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Factura</th>
+        <th>Fecha</th>
+        <th>Vencimiento</th>
+        <th>Forma de Pago</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in historial_compras %}
+      <tr>
+        <td>{{ c[1] }}</td> <!-- número de factura -->
+        <td>{{ c[2] }}</td>
+        <td>{{ c[3] }}</td>
+        <td>{{ c[4] }}</td>
+        <td>{{ c[5] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    function formatoFecha(fecha) {
+      const yyyy = fecha.getFullYear();
+      const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+      const dd = String(fecha.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function aplicarRangoFechas() {
+      const hoy = new Date();
+      const tresMesesAntes = new Date(hoy);
+      const tresMesesDespues = new Date(hoy);
+      const seisMesesAntes = new Date(hoy);
+      const seisMesesDespues = new Date(hoy);
+
+      tresMesesAntes.setMonth(hoy.getMonth() - 3);
+      tresMesesDespues.setMonth(hoy.getMonth() + 3);
+      seisMesesAntes.setMonth(hoy.getMonth() - 6);
+      seisMesesDespues.setMonth(hoy.getMonth() + 6);
+
+      const minFecha = formatoFecha(seisMesesAntes);
+      const maxFecha = formatoFecha(seisMesesDespues);
+
+      const camposFecha = ['fecha_compra','fecha_pago','fecha_vencimiento'];
+
+      camposFecha.forEach(nombre => {
+        const campo = document.querySelector(`input[name="${nombre}"]`);
+        if (campo) {
+          campo.setAttribute('min', minFecha);
+          campo.setAttribute('max', maxFecha);
+
+          campo.addEventListener('change', () => {
+            const valor = new Date(campo.value);
+            if (valor < tresMesesAntes || valor > tresMesesDespues) {
+              alert('⚠️ La fecha está fuera del rango ideal de 3 meses. Se permite hasta 6 meses por regularización.');
+            }
+          });
+        }
+      });
+    }
+
+    function calcularFechaVencimiento() {
+      const fechaPagoInput = document.querySelector('input[name="fecha_pago"]');
+      const periodoPagoInput = document.querySelector('input[name="periodo_pago"]');
+      const fechaVencimientoInput = document.querySelector('input[name="fecha_vencimiento"]');
+      const alerta = document.getElementById('alerta_vencimiento');
+
+      const fechaPago = fechaPagoInput.value;
+      const periodoPago = parseInt(periodoPagoInput.value);
+
+      if (fechaPago && !isNaN(periodoPago)) {
+        const fecha = new Date(fechaPago);
+        fecha.setDate(fecha.getDate() + periodoPago);
+        fechaVencimientoInput.value = formatoFecha(fecha);
+
+        const hoy = new Date();
+        const seisMesesAntes = new Date(hoy); seisMesesAntes.setMonth(hoy.getMonth() - 6);
+        const seisMesesDespues = new Date(hoy); seisMesesDespues.setMonth(hoy.getMonth() + 6);
+
+        if (fecha < seisMesesAntes || fecha > seisMesesDespues) {
+          alerta.textContent = `⚠️ La fecha de vencimiento (${fechaVencimientoInput.value}) está fuera del rango permitido de 6 meses.`;
+        } else {
+          alerta.textContent = '';
+        }
+      } else {
+        fechaVencimientoInput.value = '';
+        alerta.textContent = '';
+      }
+    }
+
+    function calcularPeriodoPago() {
+      const fechaPagoInput = document.querySelector('input[name="fecha_pago"]');
+      const periodoPagoInput = document.querySelector('input[name="periodo_pago"]');
+      const fechaVencimientoInput = document.querySelector('input[name="fecha_vencimiento"]');
+
+      const fechaPago = fechaPagoInput.value;
+      const fechaVencimiento = fechaVencimientoInput.value;
+
+      if (fechaPago && fechaVencimiento) {
+        const inicio = new Date(fechaPago);
+        const fin = new Date(fechaVencimiento);
+        const diferencia = Math.round((fin - inicio) / (1000 * 60 * 60 * 24));
+        periodoPagoInput.value = diferencia >= 0 ? diferencia : '';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      aplicarRangoFechas();
+
+      const fechaPagoInput = document.querySelector('input[name="fecha_pago"]');
+      const periodoPagoInput = document.querySelector('input[name="periodo_pago"]');
+      const fechaVencimientoInput = document.querySelector('input[name="fecha_vencimiento"]');
+
+      if (fechaPagoInput) fechaPagoInput.addEventListener('change', () => {
+        calcularFechaVencimiento();
+        calcularPeriodoPago();
+      });
+
+      if (periodoPagoInput) periodoPagoInput.addEventListener('input', () => {
+        calcularFechaVencimiento();
+      });
+
+      if (fechaVencimientoInput) fechaVencimientoInput.addEventListener('change', () => {
+        calcularPeriodoPago();
+      });
+    });
+  </script>
+</body>
+</html>
